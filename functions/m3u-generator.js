@@ -7,10 +7,18 @@ const groupsMap = {
 };
 
 exports.handler = async (event) => {
-    // Estrae il codice paese dall'URL. Se non c'è, countryCode sarà null.
-    const path = event.path;
-    const countryCodeMatch = path.match(/\/m3u-generator\/([a-z]{2,})\/?$/);
-    const countryCode = countryCodeMatch ? countryCodeMatch[1].toLowerCase() : null;
+    // Estrae il codice paese dal percorso della richiesta in modo robusto.
+    // L'URL dopo il reindirizzamento è del tipo: "/.netlify/functions/m3u-generator/it"
+    const pathSegments = event.path.split('/').filter(Boolean);
+    
+    // L'ultimo segmento dell'URL dovrebbe essere il codice paese.
+    // Se l'ultimo segmento è il nome della funzione, significa che non c'è codice paese.
+    const lastSegment = pathSegments[pathSegments.length - 1];
+    
+    let countryCode = null;
+    if (lastSegment && lastSegment !== 'm3u-generator') {
+        countryCode = lastSegment.toLowerCase();
+    }
 
     // Se non viene specificato un codice paese, mostra l'help
     if (!countryCode) {
@@ -34,7 +42,7 @@ https://opentv.netlify.app/api/it
         return {
             statusCode: 200,
             headers: {
-                'Content-Type': 'text/plain',
+                'Content-Type': 'text/plain; charset=utf-8',
                 'Access-Control-Allow-Origin': '*'
             },
             body: helpMessage,
