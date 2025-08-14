@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>opentv</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;700&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 576 512'><path fill='%23212529' d='M0 128C0 92.7 28.7 64 64 64H512c35.3 0 64 28.7 64 64V384c0 35.3-28.7 64-64 64H64c-35.3 0-64-28.7-64-64V128zM512 112H64c-8.8 0-16 7.2-16 16V384c0 8.8 7.2 16 16 16H512c8.8 0 16-7.2 16-16V128c0-8.8-7.2-16-16-16zM112 160c-26.5 0-48 21.5-48 48v96c0 26.5 21.5 48 48 48H464c26.5 0 48-21.5 48-48V208c0-26.5-21.5-48-48-48H112z'/></svg>" type="image/svg+xml">
+</head>
+<body>
+
+    <nav class="navbar" id="navbar">
+        <a href="#" class="navbar-brand">
+            <i class="fa-solid fa-tv tv-icon"></i>
+            open<span class="brand-tivu">tv</span>
+        </a>
+        <div class="hamburger" id="hamburger-menu">
+            <span class="bar"></span>
+            <span class="bar"></span>
+            <span class="bar"></span>
+        </div>
+        <ul class="nav-links" id="nav-links-menu">
+        </ul>
+    </nav>
+
+    <div class="main-content">
+        <div class="container">
+            <h1 id="main-title">
+                Channel: <span class="channel-name"></span>
+            </h1>
+            <div id="video-player-container">
+                <video id="video-player" controls autoplay></video>
+            </div>
+            <div id="channel-list" class="channel-grid">
+            </div>
+        </div>
+    </div>
+
+    <footer class="footer" id="footer">
+        <p><i class="fa-solid fa-tv tv-icon"></i> open<b>tv</b> &copy; 2025 | <a href="#" id="footer-disclaimer-link" data-action="open-disclaimer-modal" style="color:#fff">disclaimer</a></p>
+        <p>developed with 🤍 by <a href="https://github.com/cttynul" style="color:#fff">cttynul</a></p>
+    </footer>
+
+    <div id="disclaimerModal" class="modal">
+        <div class="modal-content">
+            <span class="close" data-modal-id="disclaimerModal">&times;</span>
+            <h2>Disclaimer</h2>
+            <p>All channels shown here are free and easily accessible on the web. They are retrieved from the following repository: <a href="https://github.com/Free-TV/IPTV" target="_blank">https://github.com/Free-TV/IPTV</a>.</p>
+            <p>The meaning of the symbols is as follows:</p>
+            <ul>
+                <li>Channels which are not in HD are marked with an ⓘ.</li>
+                <li>Channels which use GeoIP blocking are marked with a Ⓖ.</li>
+                <li>Channels which are live Youtube channels are marked with a Ⓢ.</li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="apiModal" class="modal">
+        <div class="modal-content">
+            <span class="close" data-modal-id="apiModal">&times;</span>
+            <h2>M3U Playlist API</h2>
+            <p>This feature allows you to generate M3U playlists filtered by country. The API is accessible via the following format:</p>
+            <pre><code>https://opentv.netlify.app/api/[country_code]</code></pre>
+            <p><strong>Supported country codes:</strong></p>
+            <ul>
+                <li><strong>it</strong>: Italy</li>
+                <li><strong>de</strong>: Germany</li>
+                <li><strong>fr</strong>: France</li>
+                <li><strong>es</strong>: Spain</li>
+                <li><strong>us</strong>: USA</li>
+            </ul>
+            <p>If you visit the URL without specifying a country code, a help message will be displayed.</p>
+            <p><strong>Examples:</strong></p>
+            <ul>
+                <li>For Italian channels: <code>https://opentv.netlify.app/api/it</code></li>
+                <li>For German channels: <code>https://opentv.netlify.app/api/de</code></li>
+            </ul>
+        </div>
+    </div>
+
+    <div id="cookie-consent-banner" style="display: none;">
+        <p>This site uses technical cookies for its operation. By using the site, you accept the use of these cookies.</p>
+        <button id="accept-cookies-btn">Accept</button>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/hls.js@latest"></script>
+    <script src="app.js"></script>
+</body>
+</html>

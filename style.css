@@ -1,0 +1,415 @@
+:root {
+    --primary-color: #2196F3;
+    --dark-bg: #222;
+    --dark-element: #333;
+    --text-color: #eee;
+    --text-color-light: #aaa;
+    --text-color-darker: #555;
+}
+
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: var(--dark-bg);
+    color: var(--text-color);
+    margin: 0;
+    padding-top: 80px;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    transition: background-color 0.5s ease, color 0.5s ease;
+}
+
+body.lights-off {
+    background-color: #000;
+}
+
+body.lights-off h1,
+body.lights-off .navbar-brand {
+    color: var(--text-color-darker);
+}
+
+body.lights-off h1 .channel-name {
+    color: var(--text-color-darker);
+}
+
+
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: var(--dark-element);
+    color: white;
+    padding: 10px 20px;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    box-sizing: border-box;
+    z-index: 1000;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+    transition: background-color 0.5s ease;
+}
+
+.navbar.lights-off {
+    background-color: #000;
+}
+
+.navbar-brand {
+    display: flex;
+    align-items: center;
+    font-weight: 300;
+    font-size: 2em;
+    padding: 5px;
+    color: white;
+    text-decoration: none;
+    transition: color 0.5s ease;
+}
+
+.navbar-brand .tv-icon {
+    margin-right: 10px;
+    color: white;
+    font-size: 0.8em;
+    transition: color 0.5s ease;
+}
+
+.brand-tivu {
+    font-weight: 700;
+}
+
+.nav-links {
+    list-style: none;
+    display: flex;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    font-weight: 700;
+}
+
+.nav-link a, .dropdown-toggle {
+    color: white;
+    text-decoration: none;
+    padding: 10px 15px;
+    display: flex;
+    align-items: center;
+    transition: background-color 0.3s, color 0.5s ease;
+    cursor: pointer;
+}
+
+.navbar.lights-off .nav-link a, .navbar.lights-off .dropdown-toggle {
+    color: #777;
+}
+
+.nav-link a:hover, .dropdown-toggle:hover {
+    background-color: #444;
+}
+
+.nav-link a i {
+    margin-right: 8px;
+}
+
+.flag-icon {
+    margin-right: 8px;
+    width: 20px;
+    height: auto;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    border-radius: 2px;
+}
+
+.dropdown {
+    position: relative;
+}
+
+.dropdown-menu {
+    display: none;
+    position: absolute;
+    background-color: var(--dark-element);
+    box-shadow: 0 8px 16px rgba(0,0,0,0.5);
+    z-index: 1;
+    min-width: 200px;
+    top: 100%;
+    right: 0;
+    border-radius: 4px;
+    padding: 5px 0;
+    max-height: 400px;
+    overflow-y: auto;
+}
+
+.dropdown:hover .dropdown-menu, .dropdown.active .dropdown-menu {
+    display: block;
+}
+
+.dropdown-menu a {
+    padding: 12px 16px;
+    text-decoration: none;
+    display: flex;
+    align-items: center;
+    color: var(--text-color);
+}
+
+.dropdown-menu a:hover {
+    background-color: #555;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1000; /* Assicurati che il modale sia sopra a tutto */
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.4);
+    backdrop-filter: blur(5px);
+}
+
+.modal-content {
+    background-color: #212529;
+    color: #f1f1f1;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 600px;
+    position: relative; /* z-index funziona solo su elementi posizionati */
+    z-index: 1001; /* Rendi il contenuto del modale ancora più in alto dell'overlay */
+    border-radius: 8px;
+}
+
+.modal-content p {
+    line-height: 1.6;
+}
+
+.modal-content a {
+    color: #fff;
+}
+
+.close {
+    color: #aaa;
+    position: absolute;
+    top: 10px;
+    right: 15px;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover, .close:focus {
+    color: white;
+    text-decoration: none;
+}
+
+.hamburger {
+    display: none;
+    cursor: pointer;
+    font-size: 24px;
+}
+
+.hamburger .bar {
+    display: block;
+    width: 25px;
+    height: 3px;
+    margin: 5px auto;
+    background-color: white;
+    transition: all 0.3s ease-in-out;
+}
+
+@media (max-width: 768px) {
+    .nav-links {
+        display: none;
+        flex-direction: column;
+        width: 100%;
+        position: absolute;
+        top: 60px;
+        left: 0;
+        background-color: var(--dark-element);
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
+        /* Allineamento a sinistra nel menu mobile */
+        align-items: flex-start;
+        padding: 10px 0;
+    }
+
+    .nav-links.active {
+        display: flex;
+    }
+
+    .hamburger {
+        display: block;
+    }
+
+    .nav-link a, .dropdown {
+        width: 100%;
+        text-align: left;
+        padding-left: 20px;
+    }
+
+    .dropdown-menu {
+        position: static;
+        width: 100%;
+    }
+}
+
+.main-content {
+    flex-grow: 1;
+}
+
+.container {
+    max-width: 1200px;
+    margin: auto;
+    padding: 20px;
+}
+h1 {
+    text-align: center;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 300;
+    transition: color 0.5s ease;
+}
+h1 .channel-name {
+    font-weight: 700;
+    margin-left: 5px;
+}
+
+h1 .flag-icon {
+    width: 40px;
+    height: auto;
+    margin-right: 10px;
+    border-radius: 4px;
+}
+
+.channel-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 20px;
+    padding: 20px 0;
+    transition: opacity 0.5s ease;
+}
+
+.channel-grid.lights-off {
+    opacity: 0.1;
+}
+
+.channel-item {
+    background-color: var(--dark-element);
+    border-radius: 8px;
+    padding: 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s, box-shadow 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+.channel-item:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+.channel-logo {
+    width: 80px;
+    height: 80px;
+    object-fit: contain;
+    margin-bottom: 10px;
+    border-radius: 4px;
+}
+.channel-name {
+    font-size: 0.9em;
+    word-break: break-word;
+}
+#video-player-container {
+    margin-top: 20px;
+    background-color: #000;
+    border-radius: 8px;
+    overflow: hidden;
+    z-index: 10;
+    position: relative;
+    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    height: 0;
+    position: relative;
+}
+#video-player-container video, #video-player-container iframe {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+}
+
+
+.footer {
+    background-color: var(--dark-element);
+    color: var(--text-color-light);
+    text-align: center;
+    padding: 20px;
+    font-size: smaller;
+    margin-top: 40px;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+    transition: background-color 0.5s ease;
+}
+
+/* Regola per scurire il testo e i link nel footer */
+.footer.lights-off,
+.footer.lights-off p,
+.footer.lights-off p a {
+    color: rgba(255, 255, 255, 0.4); /* Scurisce il testo rendendolo semitrasparente */
+}
+
+/* Regola per scurire le icone della navbar */
+.navbar.lights-off i {
+    filter: brightness(0.5); /* Scurisce l'icona della TV e altre */
+}
+
+.footer.lights-off {
+     background-color: #000;
+}
+
+.footer p {
+    margin: 5px 0;
+}
+
+.footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+.footer a:hover {
+    color: white;
+    text-decoration: underline;
+}
+
+/* Stile per il banner dei cookie */
+#cookie-consent-banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: var(--dark-element);
+    color: var(--text-color);
+    padding: 15px 20px;
+    text-align: center;
+    box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#cookie-consent-banner p {
+    margin: 0 0 10px 0;
+}
+
+#cookie-consent-banner button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+#cookie-consent-banner button:hover {
+    background-color: #1a7bb9;
+}
