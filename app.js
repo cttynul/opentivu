@@ -314,32 +314,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     navLinksMenu.addEventListener('click', (event) => {
-        const target = event.target.closest('a');
-        if (!target) return;
+        const target = event.target;
+        const link = target.closest('a');
+        const dropdownToggle = target.closest('.dropdown-toggle');
+
+        if (dropdownToggle) {
+            event.preventDefault();
+            const dropdown = dropdownToggle.closest('.dropdown');
+            dropdown.classList.toggle('active');
+            return;
+        }
         
-        if (target.dataset.action === 'open-disclaimer-modal') {
+        if (!link) return;
+
+        if (link.dataset.action === 'open-disclaimer-modal') {
             event.preventDefault();
             disclaimerModal.style.display = 'block';
-        } else if (target.dataset.action === 'open-api-modal') {
+        } else if (link.dataset.action === 'open-api-modal') {
             event.preventDefault();
             apiModal.style.display = 'block';
-        } else if (target.dataset.action === 'toggle-lights') {
+        } else if (link.dataset.action === 'toggle-lights') {
             event.preventDefault();
             body.classList.contains('lights-off') ? turnLightsOn() : turnLightsOff();
-        } else if (target.dataset.group) {
+        } 
+        else if (link.dataset.group) {
             event.preventDefault();
-            displayChannels(allChannels[target.dataset.group], target.dataset.group);
+            
+            displayChannels(allChannels[link.dataset.group], link.dataset.group);
+            
+            const dropdown = link.closest('.dropdown');
+            if (dropdown) {
+                dropdown.classList.remove('active');
+            }
+
             if (navLinksMenu.classList.contains('active')) {
                 navLinksMenu.classList.remove('active');
             }
-        }
-    });
-
-    navLinksMenu.addEventListener('click', (event) => {
-        const target = event.target.closest('.dropdown');
-        if (target && window.innerWidth > 768) {
-            event.preventDefault();
-            target.classList.toggle('active');
         }
     });
     

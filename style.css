@@ -247,6 +247,24 @@ body.lights-off h1 .channel-name {
         position: static;
         width: 100%;
     }
+
+    .channel-list .channel-item {
+        width: calc(33.33% - 20px); /* 3 colonne su schermi più piccoli */
+        min-width: 50px;
+        max-width: 80px;
+        padding: 10px;
+    }
+
+    /* Riduce il logo del canale */
+    .channel-list .channel-logo {
+        width: 60px;
+        height: 60px;
+    }
+    
+    /* Riduce la dimensione del font del nome del canale */
+    .channel-list .channel-item .channel-name {
+        font-size: 0.75rem; /* ~12px */
+    }
 }
 
 .main-content {
