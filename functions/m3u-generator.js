@@ -19,7 +19,7 @@ Welcome to the openTV m3u playlist generator!
 
 To get a filtered M3U list, please use the following URL format:
 
-https://opentv.netlify.app/m3u/[country_code]
+https://opentv.netlify.app/api/[country_code]
 
 Available country codes:
 - it (Italy)
@@ -29,7 +29,7 @@ Available country codes:
 - us (USA)
 
 Example:
-https://opentv.netlify.app/m3u/it
+https://opentv.netlify.app/api/it
         `;
         return {
             statusCode: 200,
