@@ -1,8 +1,8 @@
 [functions]
-directory = "functions"
-node_bundler = "esbuild"
+ directory = "functions"
+ node_bundler = "esbuild"
 
 [[redirects]]
-from = "/api/*"
-to = "/.netlify/functions/m3u-generator/:splat"
-status = 200
+ from = "/api/*"
+ to = "/.netlify/functions/m3u-generator/:splat"
+ status = 200
