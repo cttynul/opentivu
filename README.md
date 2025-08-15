@@ -1,4 +1,4 @@
-# openTV
+# opentivu
 
 A web hub for streaming free-to-air TV channels, featuring a custom M3U playlist API. Totally powered by community-maintened [IPTV repository](https://github.com/Free-TV/IPTV)
 
@@ -33,7 +33,7 @@ Simply navigate to the website to start watching. You can use the navigation men
 
 You can also use the built-in API to get a filtered `.m3u` playlist for your preferred country. The API endpoint is:
 
-`https://opentv.local/api/[country_code]`
+`https://opentivu.local/api/[country_code]`
 
 **Available Country Codes:**
 
@@ -46,7 +46,7 @@ You can also use the built-in API to get a filtered `.m3u` playlist for your pre
 **Example:**
 
 To get the Italian TV channels, you would use:
-`https://opentv.local/api/it`
+`https://opentivu.local/api/it`
 
 ## Project Structure
 

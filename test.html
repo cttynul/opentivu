@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test CORS</title>
+</head>
+<body>
+    <h1>Test CORS</h1>
+    <script>
+        fetch('https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8')
+            .then(response => response.text())
+            .then(data => console.log('Dati ricevuti:', data.substring(0, 100) + '...'))
+            .catch(error => console.error('Si è verificato un errore:', error));
+    </script>
+</body>
+</html>

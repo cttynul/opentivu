@@ -153,7 +153,7 @@ body.lights-off h1 .channel-name {
 .modal {
     display: none;
     position: fixed;
-    z-index: 1000; /* Assicurati che il modale sia sopra a tutto */
+    z-index: 1000;
     left: 0;
     top: 0;
     width: 100%;
@@ -171,8 +171,8 @@ body.lights-off h1 .channel-name {
     border: 1px solid #888;
     width: 80%;
     max-width: 600px;
-    position: relative; /* z-index funziona solo su elementi posizionati */
-    z-index: 1001; /* Rendi il contenuto del modale ancora più in alto dell'overlay */
+    position: relative;
+    z-index: 1001;
     border-radius: 8px;
 }
 
@@ -224,7 +224,6 @@ body.lights-off h1 .channel-name {
         left: 0;
         background-color: var(--dark-element);
         box-shadow: 0 2px 10px rgba(0, 0, 0, 0.5);
-        /* Allineamento a sinistra nel menu mobile */
         align-items: flex-start;
         padding: 10px 0;
     }
@@ -249,21 +248,19 @@ body.lights-off h1 .channel-name {
     }
 
     .channel-list .channel-item {
-        width: calc(33.33% - 20px); /* 3 colonne su schermi più piccoli */
+        width: calc(33.33% - 20px);
         min-width: 50px;
         max-width: 80px;
         padding: 10px;
     }
 
-    /* Riduce il logo del canale */
     .channel-list .channel-logo {
         width: 60px;
         height: 60px;
     }
     
-    /* Riduce la dimensione del font del nome del canale */
     .channel-list .channel-item .channel-name {
-        font-size: 0.75rem; /* ~12px */
+        font-size: 0.75rem;
     }
 }
 
@@ -276,25 +273,35 @@ body.lights-off h1 .channel-name {
     margin: auto;
     padding: 20px;
 }
-h1 {
-    text-align: center;
-    color: #fff;
+
+#channel-selector-container {
     display: flex;
     align-items: center;
     justify-content: center;
-    font-weight: 300;
-    transition: color 0.5s ease;
-}
-h1 .channel-name {
-    font-weight: 700;
-    margin-left: 5px;
+    gap: 10px;
+    margin-bottom: 20px;
 }
 
-h1 .flag-icon {
-    width: 40px;
-    height: auto;
-    margin-right: 10px;
-    border-radius: 4px;
+#channel-dropdown {
+    background-color: var(--dark-element);
+    color: var(--text-color);
+    border: 0px solid var(--text-color-light);
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-size: 1.2rem;
+    cursor: pointer;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    appearance: none;
+    background-image: url('data:image/svg+xml;utf8,<svg fill="white" height="24" viewBox="0 0 24 24" width="24" xmlns="http://www.w3.org/2000/svg"><path d="M7 10l5 5 5-5z"/><path d="M0 0h24v24H0z" fill="none"/></svg>');
+    background-repeat: no-repeat;
+    background-position: right 10px center;
+    padding-right: 30px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4);
+}
+
+#channel-dropdown:focus {
+    outline: none;
 }
 
 .channel-grid {
@@ -342,7 +349,7 @@ h1 .flag-icon {
     overflow: hidden;
     z-index: 10;
     position: relative;
-    padding-bottom: 56.25%; /* 16:9 Aspect Ratio */
+    padding-bottom: 56.25%;
     height: 0;
     position: relative;
 }
@@ -366,16 +373,14 @@ h1 .flag-icon {
     transition: background-color 0.5s ease;
 }
 
-/* Regola per scurire il testo e i link nel footer */
 .footer.lights-off,
 .footer.lights-off p,
 .footer.lights-off p a {
-    color: rgba(255, 255, 255, 0.4); /* Scurisce il testo rendendolo semitrasparente */
+    color: rgba(255, 255, 255, 0.4);
 }
 
-/* Regola per scurire le icone della navbar */
 .navbar.lights-off i {
-    filter: brightness(0.5); /* Scurisce l'icona della TV e altre */
+    filter: brightness(0.5);
 }
 
 .footer.lights-off {
@@ -397,7 +402,6 @@ h1 .flag-icon {
     text-decoration: underline;
 }
 
-/* Stile per il banner dei cookie */
 #cookie-consent-banner {
     position: fixed;
     bottom: 0;
@@ -419,8 +423,8 @@ h1 .flag-icon {
 }
 
 #cookie-consent-banner button {
-    background-color: var(--primary-color);
-    color: white;
+    background-color: #f2f2f2;
+    color: #333;
     border: none;
     padding: 10px 20px;
     border-radius: 5px;
@@ -429,5 +433,12 @@ h1 .flag-icon {
 }
 
 #cookie-consent-banner button:hover {
-    background-color: #1a7bb9;
+    background-color: #dddddd;
+}
+
+.channel-item.selected-channel {
+    border: 2px solid var(--text-color-light);
+    box-shadow: 0 0 10px rgba(235, 235, 235, 0.6);
+    transform: translateY(-2px);
+    background-color: rgba(235, 240, 245, 0.1);
 }

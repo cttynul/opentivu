@@ -12,9 +12,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const footerDisclaimerLink = document.getElementById('footer-disclaimer-link');
     const navbar = document.getElementById('navbar');
     const footer = document.getElementById('footer');
+    const channelDropdown = document.getElementById('channel-dropdown');
 
     let hls;
     let allChannels = {};
+    let currentGroupChannels = [];
     const relevantGroups = ['Italy', 'Germany', 'France', 'Spain', 'USA'];
 
     let inactivityTimeout;
@@ -30,8 +32,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!body.classList.contains('lights-off')) {
             body.classList.add('lights-off');
             channelListContainer.classList.add('lights-off');
-            navbar.classList.add('lights-off'); // Scurisce la navbar
-            footer.classList.add('lights-off'); // Scurisce il footer
+            navbar.classList.add('lights-off');
+            footer.classList.add('lights-off');
+            channelDropdown.classList.add('lights-off');
 
             const lightToggleButton = document.querySelector('[data-action="toggle-lights"]');
             if (lightToggleButton) {
@@ -44,8 +47,9 @@ document.addEventListener('DOMContentLoaded', () => {
         if (body.classList.contains('lights-off')) {
             body.classList.remove('lights-off');
             channelListContainer.classList.remove('lights-off');
-            navbar.classList.remove('lights-off'); // Riporta la navbar alla normalità
-            footer.classList.remove('lights-off'); // Riporta il footer alla normalità
+            navbar.classList.remove('lights-off');
+            footer.classList.remove('lights-off');
+            channelDropdown.classList.remove('lights-off');
             
             const lightToggleButton = document.querySelector('[data-action="toggle-lights"]');
             if (lightToggleButton) {
@@ -115,7 +119,6 @@ document.addEventListener('DOMContentLoaded', () => {
         const otherGroups = groups.filter(g => !relevantGroups.includes(g)).sort();
         const allGroups = relevantGroups.concat(otherGroups);
 
-        // 1. TVs (Dropdown)
         const dropdownLi = document.createElement('li');
         dropdownLi.className = 'nav-link dropdown';
         const dropdownToggle = document.createElement('a');
@@ -150,7 +153,6 @@ document.addEventListener('DOMContentLoaded', () => {
         dropdownLi.appendChild(dropdownMenu);
         navLinksMenu.appendChild(dropdownLi);
         
-        // 2. Immersive (Toggle)
         const lightToggleLi = document.createElement('li');
         lightToggleLi.className = 'nav-link';
         const lightToggleLink = document.createElement('a');
@@ -160,7 +162,6 @@ document.addEventListener('DOMContentLoaded', () => {
         lightToggleLi.appendChild(lightToggleLink);
         navLinksMenu.appendChild(lightToggleLi);
 
-        // 3. API
         const apiLi = document.createElement('li');
         apiLi.className = 'nav-link';
         const apiLink = document.createElement('a');
@@ -170,7 +171,6 @@ document.addEventListener('DOMContentLoaded', () => {
         apiLi.appendChild(apiLink);
         navLinksMenu.appendChild(apiLi);
 
-        // 4. Disclaimer
         const disclaimerLi = document.createElement('li');
         disclaimerLi.className = 'nav-link';
         const disclaimerLink = document.createElement('a');
@@ -179,6 +179,21 @@ document.addEventListener('DOMContentLoaded', () => {
         disclaimerLink.dataset.action = 'open-disclaimer-modal';
         disclaimerLi.appendChild(disclaimerLink);
         navLinksMenu.appendChild(disclaimerLi);
+    }
+    
+    function populateChannelDropdown(channels, selectedChannel) {
+        channelDropdown.innerHTML = '';
+        
+        channels.forEach(channel => {
+            const option = document.createElement('option');
+            option.value = channel.url;
+            option.textContent = channel.name;
+            option.dataset.name = channel.name;
+            if (channel.name === selectedChannel.name) {
+                option.selected = true;
+            }
+            channelDropdown.appendChild(option);
+        });
     }
 
     function displayChannels(channels, groupName) {
@@ -202,19 +217,30 @@ document.addEventListener('DOMContentLoaded', () => {
              channelListContainer.innerHTML = '<p style="text-align: center; color: red;">Nessun canale trovato per questo gruppo.</p>';
              return;
         }
-        
-        mainTitle.innerHTML = `Channel: <span class="channel-name">${channelToPlay.name}</span>`;
 
+        // riga rimossa: mainTitle.style.display = 'none';
+        
+        channelDropdown.style.display = 'inline-block';
+        
+        populateChannelDropdown(channelsToDisplay, channelToPlay);
+        
         if (!channelsToDisplay || channelsToDisplay.length === 0) {
             channelListContainer.innerHTML = '<p style="text-align: center; color: red;">Nessun canale trovato per questo gruppo.</p>';
             return;
         }
+
+        let initialChannelSelected = false;
 
         channelsToDisplay.forEach(channel => {
             const channelItem = document.createElement('div');
             channelItem.className = 'channel-item';
             channelItem.dataset.url = channel.url;
             channelItem.dataset.name = channel.name;
+
+            if (!initialChannelSelected && channel.name === channelToPlay.name) {
+                channelItem.classList.add('selected-channel');
+                initialChannelSelected = true;
+            }
 
             const logo = document.createElement('img');
             logo.className = 'channel-logo';
@@ -229,7 +255,14 @@ document.addEventListener('DOMContentLoaded', () => {
             channelItem.appendChild(name);
 
             channelItem.addEventListener('click', () => {
-                playChannel(channel.url, channel.name);
+                document.querySelectorAll('.channel-item').forEach(item => {
+                    item.classList.remove('selected-channel');
+                });
+                channelItem.classList.add('selected-channel');
+
+                channelDropdown.value = channel.url;
+
+                playChannel(channel.url);
                 resetInactivityTimer();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
@@ -238,12 +271,13 @@ document.addEventListener('DOMContentLoaded', () => {
         });
 
         if (channelToPlay) {
-            playChannel(channelToPlay.url, channelToPlay.name);
+            playChannel(channelToPlay.url);
         }
     }
 
-    function playChannel(url, channelName) {
-        mainTitle.querySelector('.channel-name').textContent = channelName;
+    function playChannel(url) {
+        const selectedOption = channelDropdown.options[channelDropdown.selectedIndex];
+        const channelName = selectedOption ? selectedOption.dataset.name : 'Unknown';
 
         if (url.includes('youtube.com')) {
             const videoIdMatch = url.match(/(?:v=|youtu\.be\/)([\w-]{11})/);
@@ -309,6 +343,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
     
+    channelDropdown.addEventListener('change', (event) => {
+        const selectedUrl = event.target.value;
+        const selectedName = event.target.options[event.target.selectedIndex].dataset.name;
+        
+        document.querySelectorAll('.channel-item').forEach(item => {
+            item.classList.remove('selected-channel');
+            if (item.dataset.url === selectedUrl) {
+                item.classList.add('selected-channel');
+            }
+        });
+
+        playChannel(selectedUrl);
+    });
+
     hamburgerMenu.addEventListener('click', () => {
         navLinksMenu.classList.toggle('active');
     });
