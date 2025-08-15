@@ -40,7 +40,7 @@ const groupsMap = {
     'ie': ['Ireland'],
     'il': ['Israel'],
     'it': ['Italy', 'VOD Italy'],
-    'jp': ['日本/Japan'],
+    'jp': ['æ—¥æœ¬/Japan'],
     'kr': ['Korea'],
     'xk': ['Kosovo'],
     'lv': ['Latvia'],
@@ -85,16 +85,11 @@ const groupsMap = {
     'news': ['News (AR)', 'News (ES)', 'News'],
     'business': ['Business'],
     'weather': ['Weather'],
-    'all': [] // Aggiungi il codice 'all' alla mappa, ma lo gestiremo in modo speciale
+    'all': []
 };
 
 exports.handler = async (event) => {
-    // Estrae il codice paese dal percorso della richiesta in modo robusto.
-    // L'URL dopo il reindirizzamento è del tipo: "/.netlify/functions/m3u-generator/it"
     const pathSegments = event.path.split('/').filter(Boolean);
-
-    // L'ultimo segmento dell'URL dovrebbe essere il codice paese.
-    // Se l'ultimo segmento è il nome della funzione, significa che non c'è codice paese.
     const lastSegment = pathSegments[pathSegments.length - 1];
 
     let countryCode = null;
@@ -102,48 +97,21 @@ exports.handler = async (event) => {
         countryCode = lastSegment.toLowerCase();
     }
 
-    // Se non viene specificato un codice paese, mostra l'help
+    // Se non viene specificato un codice paese, restituisci un errore
     if (!countryCode) {
-        const availableCountries = Object.keys(groupsMap).sort().map(code => {
-            const groups = groupsMap[code];
-            const displayNames = groups.map(group => {
-                // Rimuove '(AR)', '(EN)', ecc. per una visualizzazione più pulita
-                const cleanName = group.replace(/\s*\(.*\)/, '').replace(/VOD\s*/, '');
-                return cleanName;
-            }).join(', ');
-            
-            return `- ${code} (${displayNames || 'Tutti i canali'})`;
-        }).join('\n');
-
-        const helpMessage = `
-Welcome to the opentivu m3u playlist generator!
-
-To get a filtered M3U list, please use the following URL format:
-
-https://opentivu.netlify.app/api/[country_code]
-
-Available country codes:
-${availableCountries}
-
-Example:
-https://opentivu.netlify.app/api/it
-        `;
         return {
-            statusCode: 200,
+            statusCode: 404,
             headers: {
                 'Content-Type': 'text/plain; charset=utf-8',
                 'Access-Control-Allow-Origin': '*'
             },
-            body: helpMessage,
+            body: 'Error: Country code not provided. Please use the format /api/[country_code].',
         };
     }
-
-    // Gestione speciale per il codice 'all'
-    let allowedGroups = groupsMap[countryCode];
-    let isAllRequest = countryCode === 'all';
     
-    // Se non è una richiesta 'all' e il codice non è supportato, restituisci un errore.
-    if (!isAllRequest && !allowedGroups) {
+    // Controlla se il codice paese è valido
+    const allowedGroups = groupsMap[countryCode];
+    if (!allowedGroups && countryCode !== 'all') {
         return {
             statusCode: 404,
             body: 'Country code not supported.'
@@ -151,6 +119,7 @@ https://opentivu.netlify.app/api/it
     }
 
     const m3u8Url = 'https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8';
+    const italianEpgUrl = 'https://tvit.leicaflorianrobert.dev/epg/list.xml';
 
     try {
         const response = await fetch(m3u8Url);
@@ -159,17 +128,8 @@ https://opentivu.netlify.app/api/it
         }
         const m3u8Data = await response.text();
 
-        let filteredM3u = '#EXTM3U\n';
         const lines = m3u8Data.split('\n');
-
-        // Canali italiani
-        const italianChannels = groupsMap['it'];
-        // Liste temporanee per i canali
-        const primaryList = []; // Per i canali italiani
-        const secondaryList = []; // Per tutti gli altri canali
-
-        let isPrimaryChannel = false; // Flag per i canali italiani
-        let isSecondaryChannel = false; // Flag per gli altri canali
+        const channels = [];
 
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
@@ -178,44 +138,46 @@ https://opentivu.netlify.app/api/it
                 const groupTitleMatch = line.match(/group-title="([^"]*)"/);
                 const groupTitle = groupTitleMatch ? groupTitleMatch[1] : '';
 
-                if (isAllRequest) {
-                    // Logica per 'all': verifica se il canale è italiano o no
-                    isPrimaryChannel = italianChannels.includes(groupTitle);
-                    isSecondaryChannel = !isPrimaryChannel;
-                } else {
-                    // Logica per i singoli paesi
-                    isPrimaryChannel = allowedGroups.includes(groupTitle);
-                    isSecondaryChannel = false; // Non usato in questo caso
-                }
-
-                if (isPrimaryChannel) {
-                    primaryList.push(line);
-                    // Aggiungi la riga successiva (l'URL)
-                    if (lines[i + 1] && lines[i + 1].startsWith('http')) {
-                        primaryList.push(lines[i + 1]);
-                        i++; // Salta la riga successiva
-                    }
-                } else if (isSecondaryChannel) {
-                    secondaryList.push(line);
-                    // Aggiungi la riga successiva (l'URL)
-                    if (lines[i + 1] && lines[i + 1].startsWith('http')) {
-                        secondaryList.push(lines[i + 1]);
-                        i++; // Salta la riga successiva
-                    }
-                } else {
-                    // Logica per i singoli paesi, se il canale non è tra quelli consentiti
-                    isPrimaryChannel = false;
+                if (lines[i + 1] && lines[i + 1].startsWith('http')) {
+                    channels.push({
+                        meta: line,
+                        url: lines[i + 1],
+                        group: groupTitle
+                    });
+                    i++;
                 }
             }
         }
         
-        // Costruisci la playlist finale
-        if (isAllRequest) {
-            filteredM3u += primaryList.join('\n') + '\n' + secondaryList.join('\n');
+        let filteredChannels = [];
+        
+        if (countryCode === 'all') {
+            filteredChannels = channels;
+
+            filteredChannels.sort((a, b) => {
+                const isAItalian = groupsMap['it'].includes(a.group);
+                const isBItalian = groupsMap['it'].includes(b.group);
+                
+                if (isAItalian && !isBItalian) {
+                    return -1;
+                }
+                if (!isAItalian && isBItalian) {
+                    return 1;
+                }
+                
+                return a.group.localeCompare(b.group);
+            });
         } else {
-            // Se non è una richiesta 'all', usa la logica di filtraggio originale
-            filteredM3u += primaryList.join('\n');
+            filteredChannels = channels.filter(channel => allowedGroups.includes(channel.group));
         }
+
+        // Aggiungi il tag EPG solo se il codice del paese è 'it'
+        const header = (countryCode === 'it') ? `#EXTM3U url-tvg="${italianEpgUrl}"\n` : '#EXTM3U\n';
+        
+        let filteredM3u = header;
+        filteredChannels.forEach(channel => {
+            filteredM3u += channel.meta + '\n' + channel.url + '\n';
+        });
 
         return {
             statusCode: 200,

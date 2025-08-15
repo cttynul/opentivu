@@ -282,6 +282,12 @@ body.lights-off h1 .channel-name {
     margin-bottom: 20px;
 }
 
+body.lights-off #channel-selector-container,
+body.lights-off #channel-dropdown {
+    filter: brightness(0.5);
+    transition: filter 0.5s ease;
+}
+
 #channel-dropdown {
     background-color: var(--dark-element);
     color: var(--text-color);

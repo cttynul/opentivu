@@ -19,14 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentGroupChannels = [];
     const relevantGroups = ['Italy', 'Germany', 'France', 'Spain', 'USA'];
 
-    let inactivityTimeout;
-    const inactivityDuration = 60000;
     const body = document.body;
-
-    function resetInactivityTimer() {
-        clearTimeout(inactivityTimeout);
-        inactivityTimeout = setTimeout(turnLightsOff, inactivityDuration);
-    }
 
     function turnLightsOff() {
         if (!body.classList.contains('lights-off')) {
@@ -34,7 +27,11 @@ document.addEventListener('DOMContentLoaded', () => {
             channelListContainer.classList.add('lights-off');
             navbar.classList.add('lights-off');
             footer.classList.add('lights-off');
-            channelDropdown.classList.add('lights-off');
+            
+            const channelSelectorContainer = document.getElementById('channel-selector-container');
+            if (channelSelectorContainer) {
+                channelSelectorContainer.classList.add('lights-off');
+            }
 
             const lightToggleButton = document.querySelector('[data-action="toggle-lights"]');
             if (lightToggleButton) {
@@ -49,7 +46,11 @@ document.addEventListener('DOMContentLoaded', () => {
             channelListContainer.classList.remove('lights-off');
             navbar.classList.remove('lights-off');
             footer.classList.remove('lights-off');
-            channelDropdown.classList.remove('lights-off');
+            
+            const channelSelectorContainer = document.getElementById('channel-selector-container');
+            if (channelSelectorContainer) {
+                channelSelectorContainer.classList.remove('lights-off');
+            }
             
             const lightToggleButton = document.querySelector('[data-action="toggle-lights"]');
             if (lightToggleButton) {
@@ -200,6 +201,10 @@ document.addEventListener('DOMContentLoaded', () => {
         channelListContainer.innerHTML = '';
         
         let channelsToDisplay = channels;
+        if (groupName === 'Italy' && allChannels['VOD Italy']) {
+            channelsToDisplay = channelsToDisplay.concat(allChannels['VOD Italy']);
+        }
+
         if (groupName === 'TVs') {
             channelsToDisplay = allChannels['Italy'];
             groupName = 'Italy';
@@ -263,7 +268,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 channelDropdown.value = channel.url;
 
                 playChannel(channel.url);
-                resetInactivityTimer();
                 window.scrollTo({ top: 0, behavior: 'smooth' });
             });
 
@@ -278,6 +282,11 @@ document.addEventListener('DOMContentLoaded', () => {
     function playChannel(url) {
         const selectedOption = channelDropdown.options[channelDropdown.selectedIndex];
         const channelName = selectedOption ? selectedOption.dataset.name : 'Unknown';
+        const errorMessage = `<div style="text-align: center; color: white; padding: 20px;">
+                                <p style="font-size: 1.2em;">Can't load channel into webplayer.</p>
+                                <p>Channel may be geoblocked or embedded is not permitted.</p>
+                                <p>Try using a desktop player like VLC.</p>
+                              </div>`;
 
         if (url.includes('youtube.com')) {
             const videoIdMatch = url.match(/(?:v=|youtu\.be\/)([\w-]{11})/);
@@ -293,7 +302,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 videoPlayerContainer.innerHTML = `<iframe src="${embedUrl}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
             } else {
                 console.error('ID del video di YouTube non trovato nell\'URL');
-                videoPlayerContainer.innerHTML = '<p style="text-align:center; color:white;">Impossibile riprodurre il canale YouTube.</p>';
+                videoPlayerContainer.innerHTML = errorMessage;
             }
         } else {
             videoPlayerContainer.innerHTML = '<video id="video-player" controls autoplay></video>';
@@ -304,6 +313,14 @@ document.addEventListener('DOMContentLoaded', () => {
                     hls.destroy();
                 }
                 hls = new Hls();
+                
+                hls.on(Hls.Events.ERROR, (event, data) => {
+                    if (data.fatal) {
+                        console.error('Errore fatale di Hls.js:', data);
+                        videoPlayerContainer.innerHTML = errorMessage;
+                    }
+                });
+
                 hls.loadSource(url);
                 hls.attachMedia(newVideoElement);
                 hls.on(Hls.Events.MANIFEST_PARSED, () => {
@@ -314,8 +331,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 newVideoElement.addEventListener('loadedmetadata', () => {
                     newVideoElement.play();
                 });
+                newVideoElement.addEventListener('error', () => {
+                    videoPlayerContainer.innerHTML = errorMessage;
+                });
             } else {
-                alert('Il tuo browser non supporta la riproduzione di questo formato video.');
+                videoPlayerContainer.innerHTML = errorMessage;
             }
         }
     }
@@ -335,7 +355,6 @@ document.addEventListener('DOMContentLoaded', () => {
             generateNavMenu(groupNames);
             
             displayChannels(allChannels['Italy'], 'Italy');
-            resetInactivityTimer();
             
         } catch (error) {
             console.error('Si è verificato un errore:', error);
