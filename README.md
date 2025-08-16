@@ -1,20 +1,20 @@
-# openTV
+# opentivu
 
 A web hub for streaming free-to-air TV channels, featuring a custom M3U playlist API. Totally powered by community-maintened [IPTV repository](https://github.com/Free-TV/IPTV)
 
 This project is a simple web application for watching publicly available IPTV channels. It provides a clean, responsive interface to browse and stream channels from a central, curated list. The player includes an "Immersive Mode" for a focused viewing experience and an API for developers to generate their own filtered `.m3u` playlists.
 
-## Why Another One? 
+## Why Another One?
 The web is full of great IPTV projects, and honestly, many are fantastic. Projects like the excellent https://github.com/iptv-org are the gold standard. So why reinvent the wheel?
 
 Well, sometimes you just want the wheel to have a slightly different color.
 
 This project was born out of a mix of personal preferences and a desire for a more tailored experience. I found myself thinking:
 
-- *"I don't like the order of these links."*
-- *"The visual presentation of this other one isn't quite my style."*
-- *"That other project had some dead channels that kept bugging me."*
-- *"I just wanna open a link and watch italian TV"*
+- "I don't like the order of these links."
+- "The visual presentation of this other one isn't quite my style."
+- "That other project had some dead channels that kept bugging me."
+- "I just wanna open a link and watch italian TV"
 
 Instead of complaining, I decided to build something that was just right for me.
 
@@ -24,36 +24,60 @@ Instead of complaining, I decided to build something that was just right for me.
 - **Immersive Mode**: A dark theme that optimizes the viewing experience by reducing on-screen distractions.
 - **Country-specific filtering**: Easily find and browse channels from supported countries.
 - **M3U Playlist API**: A powerful API to generate custom `.m3u` playlists for your favorite regions.
+- **Multilanguage**: Both Python and JS version, according to what I need more.
+
 
 ## How to Use
 
-Generate list with Python old fashioned and no more maintained script, created when the Free TV project didn't have the playlists yet and I had to scrape everything or simply navigate to the website to start watching. You can use the navigation menu to filter channels by country and toggle Immersive Mode.
+### Script CLI
+
+Generate your own playlist with the Python script, now updated to support local generation based on a country code.
 
 ```
-python create_m3u.py [-a|--auto]
--a --auto: nullable param, if None script will start with wizard; esle will auto update all downloadable m3u playlists
+python generate_m3u.py [country_code]
 ```
-
-### API Usage
-
-You can also use the built-in API to get a filtered `.m3u` playlist for your preferred country. The API endpoint is:
-
-`https://opentv.local/api/[country_code]`
-
-**Available Country Codes:**
-
-- `it` (Italy)
-- `de` (Germany)
-- `fr` (France)
-- `es` (Spain)
-- `us` (USA)
 
 **Example:**
-
 To get the Italian TV channels, you would use:
-`https://opentv.local/api/it`
+```
+python generate_m3u.py it
+```
 
-## Project Structure
+### Webserver
+
+For a dynamic experience, you can run a local web server using Flask and Docker to serve playlists on demand.
+
+#### Requirements
+- [Docker](https://www.docker.com/)
+
+#### Setup
+1. Clone the repository.
+2. Navigate to the project root.
+3. Edit the `config.yml` file to configure the server host and port.
+4. Build the Docker image:
+   ```
+   docker build -t opentivu-server .
+   ```
+5. Run the Docker container, mapping the host port to the container port:
+   ```
+   docker run -p 5000:5000 opentivu-server
+   ```
+
+#### API Usage
+The server provides a RESTful API to generate custom `.m3u` playlists on the fly. The base endpoint is `/api/`.
+
+- **How-to Endpoint**:
+  Navigate to `http://opentivu.local:5000/api/` to get a JSON response with instructions on how to use the API and a list of all supported country codes.
+
+- **Playlist Endpoint**:
+  Use the format `http://opentivu.local:5000/api/[country_code]` to get a filtered `.m3u` playlist.
+
+  **Example:**
+  To get the Italian TV channels, you would use:
+  `http://opentivu.local:5000/api/it`
+
+
+## Front-End Structure
 
 - `index.html`: The main HTML file for the application.
 - `style.css`: All the CSS styles, including light and dark themes.
@@ -61,9 +85,7 @@ To get the Italian TV channels, you would use:
 - `netlify.toml`: Configuration file for Netlify redirects and serverless functions.
 - `functions/m3u-generator.js`: The serverless function that powers the M3U playlist API.
 
-## Development
-
-This project was built using vanilla HTML, CSS, and JavaScript. HLS.js is used for streaming video content.
+Built using vanilla HTML, CSS, and JavaScript. HLS.js is used for streaming video content.
 
 ## Future Developments: EPG Integration
 

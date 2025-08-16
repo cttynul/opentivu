@@ -1,4 +1,10 @@
-import requests, re, sys
+# app.py
+from flask import Flask, Response, abort, jsonify
+import requests
+import re
+import yaml
+
+app = Flask(__name__)
 
 GROUPS_MAP = {
     'al': ['Albania'],
@@ -98,17 +104,19 @@ def print_logo():
   / _ \| '_ \ / _ \ '_ \| __| \ \ / / | | |
  | (_) | |_) |  __/ | | | |_| |\ V /| |_| |
   \___/| .__/ \___|_| |_|\__|_| \_/  \__,_|
-       |_|.py                                 
+       |_|.api                               
                                   - cttynul
     '''
     print(logo)
 
-def generate_playlist(country_code):
+print_logo
+
+def get_m3u_content(country_code):
     m3u8_url = 'https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8'
     italian_epg_url = 'https://tvit.leicaflorianrobert.dev/epg/list.xml'
     allowed_groups = GROUPS_MAP.get(country_code)
     if not allowed_groups and country_code != 'all':
-        return "Unsupported country code."
+        return None
     try:
         response = requests.get(m3u8_url)
         response.raise_for_status()
@@ -137,20 +145,36 @@ def generate_playlist(country_code):
         for channel in filtered_channels:
             filtered_m3u += f"{channel['meta']}\n{channel['url']}\n"
         return filtered_m3u
-    except requests.exceptions.RequestException as e:
-        return f"Error fetching playlist: {e}"
-if __name__ == "__main__":
+    except requests.exceptions.RequestException:
+        return None
+
+@app.route('/api/')
+def api_how_to():
+    how_to_message = {
+        "message": "Welcome to opentivu API. To get a playlist, use the following format:",
+        "usage": "/api/[country_code]",
+        "example": "http://endpoint:5000/api/it",
+        "available_countries": sorted(list(GROUPS_MAP.keys()))
+    }
+    return jsonify(how_to_message)
+
+@app.route('/api/<country_code>')
+def get_playlist(country_code):
+    playlist_content = get_m3u_content(country_code)
+    if playlist_content is None:
+        return "Country code not supported.", 404
+    if "Error" in playlist_content:
+        return "Internal server error.", 500
+    return Response(
+        playlist_content,
+        mimetype='application/x-mpegurl',
+        headers={'Access-Control-Allow-Origin': '*'}
+    )
+if __name__ == '__main__':
     print_logo()
-    if len(sys.argv) < 2:
-        print("Error: Please specify a country code (e.g., 'it', 'us', 'all').")
-    else:
-        country_code = sys.argv[1].lower()
-        print(f"Generating playlist for country code: {country_code}")
-        m3u_content = generate_playlist(country_code)
-        if not m3u_content.startswith("Error"):
-            filename = f"playlist_{country_code}.m3u"
-            with open(filename, 'w', encoding='utf-8') as f:
-                f.write(m3u_content)
-            print(f"Playlist generated successfully: {filename}")
-        else:
-            print(m3u_content)
+    with open('config.yml', 'r') as f:
+        config = yaml.safe_load(f)
+    server_config = config.get('server', {})
+    host = server_config.get('host', '0.0.0.0')
+    port = server_config.get('port', 5000)
+    app.run(host=host, port=port)
