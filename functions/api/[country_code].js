@@ -1,7 +1,4 @@
-// File: functions/api/[country_code].js
-
 const groupsMap = {
-    // ... your full groupsMap ...
     'al': ['Albania'],
     'ad': ['Andorra'],
     'ar': ['Argentina'],
@@ -144,7 +141,6 @@ Note: This API is for personal use and provides a list of publicly and free-to-a
     }
 
     const m3u8Url = 'https://raw.githubusercontent.com/Free-TV/IPTV/master/playlist.m3u8';
-    const italianEpgUrl = 'https://tvit.leicaflorianrobert.dev/epg/list.xml';
 
     try {
         const response = await fetch(m3u8Url);
@@ -196,7 +192,12 @@ Note: This API is for personal use and provides a list of publicly and free-to-a
             filteredChannels = channels.filter(channel => allowedGroups.includes(channel.group));
         }
 
-        const header = (countryCode === 'it') ? `#EXTM3U url-tvg="${italianEpgUrl}"\n` : '#EXTM3U\n';
+        const italianEpgUrl = 'https://tvit.leicaflorianrobert.dev/epg/list.xml';
+        const plutoEpgUrl = 'https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/it.xml';
+
+        const header = (countryCode === 'it') 
+            ? `#EXTM3U url-tvg="${italianEpgUrl},${plutoEpgUrl}"\n` 
+            : '#EXTM3U\n';
         
         let filteredM3u = header;
         filteredChannels.forEach(channel => {
