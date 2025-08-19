@@ -102,26 +102,30 @@ export async function onRequest({ params }) {
         });
     }
 
-    // Se country_code è "help", visualizza la pagina di aiuto
-    if (country_code.toLowerCase() === 'help') {
+    const countryCode = country_code.toLowerCase();
+
+    // Se country_code è "help", visualizza la pagina di aiuto aggiornata
+    if (countryCode === 'help') {
         const helpText = `
 opentivu m3u8 generator API
 --------------------------
 
-This API generates a filtered M3U8 playlist based on a country code.
+This API generates a filtered M3U8 playlist based on a country code or provides EPG data.
 
 Usage:
 /api/[country_code]
 
 Parameters:
-[country_code] - A two-letter country code (e.g., 'it' for Italy).
+[country_code] - A two-letter country code (e.g., 'it' for Italy) or 'epg' for EPG data.
 
 Available country codes:
 ${Object.keys(groupsMap).map(code => ` - ${code.toUpperCase()}`).join('\n')}
+ - EPG
 
 Example:
 To get all Italian channels, use: /api/it
 To get all available channels, use: /api/all
+To get the combined EPG data, use: /api/epg
 
 Note: This API is for personal use and provides a list of publicly and free-to-air available TV streams.
         `;
@@ -131,10 +135,65 @@ Note: This API is for personal use and provides a list of publicly and free-to-a
             headers: { 'Content-Type': 'text/plain' },
         });
     }
+    
+    // Se country_code è "epg", gestisci la richiesta EPG
+    if (countryCode === 'epg') {
+        const italianEpgUrl = 'https://tvit.leicaflorianrobert.dev/epg/list.xml';
+        const plutoEpgUrl = 'https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/it.xml';
+
+        try {
+            // Scarica i file EPG da entrambi gli URL
+            const [italianEpgResponse, plutoEpgResponse] = await Promise.all([
+                fetch(italianEpgUrl),
+                fetch(plutoEpgUrl)
+            ]);
+
+            // Controlla che le risposte siano valide
+            if (!italianEpgResponse.ok || !plutoEpgResponse.ok) {
+                throw new Error('Errore durante il recupero di uno o entrambi i file EPG.');
+            }
+
+            const italianEpgXml = await italianEpgResponse.text();
+            const plutoEpgXml = await plutoEpgResponse.text();
+
+            // Funzione per estrarre i contenuti <channel> e <programme>
+            const extractContent = (xmlString) => {
+                // Rimuove l'intestazione XML, il DOCTYPE e il tag <tv> di apertura e chiusura
+                // per isolare solo i tag di contenuto.
+                return xmlString.replace(/<\?xml[^>]*\?>/g, '')
+                                .replace(/<!DOCTYPE[^>]*>/g, '')
+                                .replace(/<tv[^>]*>|<\/tv>/g, '')
+                                .trim();
+            };
+
+            const italianContent = extractContent(italianEpgXml);
+            const plutoContent = extractContent(plutoEpgXml);
+            
+            // Unisce i contenuti in un unico file EPG
+            const combinedEpg = `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE tv SYSTEM "xmltv.dtd">
+<tv>
+${italianContent}
+${plutoContent}
+</tv>`;
+
+            // Restituisce il file EPG unito con il tipo di contenuto corretto
+            return new Response(combinedEpg, {
+                status: 200,
+                headers: {
+                    'Content-Type': 'application/xml',
+                    'Access-Control-Allow-Origin': '*'
+                }
+            });
+
+        } catch (error) {
+            console.error('Errore durante l\'unione dei file EPG:', error);
+            return new Response('Errore interno del server durante l\'unione dei file EPG.', { status: 500 });
+        }
+    }
+
 
     // Il resto del codice per generare la M3U8...
-    const countryCode = country_code.toLowerCase();
-
     const allowedGroups = groupsMap[countryCode];
     if (!allowedGroups && countryCode !== 'all') {
         return new Response('Country code not supported.', { status: 404 });
