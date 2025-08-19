@@ -92,10 +92,9 @@ const groupsMap = {
 export async function onRequest({ params }) {
     const { country_code } = params;
 
-    // Se country_code è vuoto, reindirizza a /api/help
     if (!country_code) {
         return new Response(null, {
-            status: 302, // 302 Found (Temporary Redirect)
+            status: 302,
             headers: {
                 'Location': '/api/help',
             },
@@ -104,7 +103,6 @@ export async function onRequest({ params }) {
 
     const countryCode = country_code.toLowerCase();
 
-    // Se country_code è "help", visualizza la pagina di aiuto aggiornata
     if (countryCode === 'help') {
         const helpText = `
 opentivu m3u8 generator API
@@ -136,19 +134,16 @@ Note: This API is for personal use and provides a list of publicly and free-to-a
         });
     }
     
-    // Se country_code è "epg", gestisci la richiesta EPG
     if (countryCode === 'epg') {
         const italianEpgUrl = 'https://tvit.leicaflorianrobert.dev/epg/list.xml';
         const plutoEpgUrl = 'https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/it.xml';
 
         try {
-            // Scarica i file EPG da entrambi gli URL
             const [italianEpgResponse, plutoEpgResponse] = await Promise.all([
                 fetch(italianEpgUrl),
                 fetch(plutoEpgUrl)
             ]);
 
-            // Controlla che le risposte siano valide
             if (!italianEpgResponse.ok || !plutoEpgResponse.ok) {
                 throw new Error('Errore durante il recupero di uno o entrambi i file EPG.');
             }
@@ -156,10 +151,7 @@ Note: This API is for personal use and provides a list of publicly and free-to-a
             const italianEpgXml = await italianEpgResponse.text();
             const plutoEpgXml = await plutoEpgResponse.text();
 
-            // Funzione per estrarre i contenuti <channel> e <programme>
             const extractContent = (xmlString) => {
-                // Rimuove l'intestazione XML, il DOCTYPE e il tag <tv> di apertura e chiusura
-                // per isolare solo i tag di contenuto.
                 return xmlString.replace(/<\?xml[^>]*\?>/g, '')
                                 .replace(/<!DOCTYPE[^>]*>/g, '')
                                 .replace(/<tv[^>]*>|<\/tv>/g, '')
@@ -169,7 +161,6 @@ Note: This API is for personal use and provides a list of publicly and free-to-a
             const italianContent = extractContent(italianEpgXml);
             const plutoContent = extractContent(plutoEpgXml);
             
-            // Unisce i contenuti in un unico file EPG
             const combinedEpg = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE tv SYSTEM "xmltv.dtd">
 <tv>
@@ -177,7 +168,6 @@ ${italianContent}
 ${plutoContent}
 </tv>`;
 
-            // Restituisce il file EPG unito con il tipo di contenuto corretto
             return new Response(combinedEpg, {
                 status: 200,
                 headers: {
@@ -193,7 +183,6 @@ ${plutoContent}
     }
 
 
-    // Il resto del codice per generare la M3U8...
     const allowedGroups = groupsMap[countryCode];
     if (!allowedGroups && countryCode !== 'all') {
         return new Response('Country code not supported.', { status: 404 });
@@ -218,11 +207,15 @@ ${plutoContent}
                 const groupTitleMatch = line.match(/group-title="([^"]*)"/);
                 const groupTitle = groupTitleMatch ? groupTitleMatch[1] : '';
 
+                const channelNameMatch = line.match(/,(.*)$/);
+                const originalChannelName = channelNameMatch ? channelNameMatch[1].trim() : '';
+
                 if (lines[i + 1] && lines[i + 1].startsWith('http')) {
                     channels.push({
                         meta: line,
                         url: lines[i + 1],
-                        group: groupTitle
+                        group: groupTitle,
+                        name: originalChannelName
                     });
                     i++;
                 }
@@ -260,7 +253,17 @@ ${plutoContent}
         
         let filteredM3u = header;
         filteredChannels.forEach(channel => {
-            filteredM3u += channel.meta + '\n' + channel.url + '\n';
+            // Funzione per rimuovere i caratteri speciali, gli indicatori e la stringa " - Pluto TV"
+            const cleanName = channel.name
+                .replace(/ \u24d8|\u24bc|\u24c8|\u24df|\u24e2|\u24d5|\u24e6|\u24d1|\u24e5|\u24dc|\u24d0|\u24e7|\u24d9|\u24d7|\u24e8|\u24d4|\u24e4|\u24dd|\u24d6|\u24e1|\u24e3|\u24db|\u24da|\u24e0|\u24de|\u24e9/g, '')
+                .replace(/ – Pluto TV/g, '') // Rimuove " - Pluto TV"
+                .trim();
+
+            let newMeta = channel.meta.replace(/tvg-id="[^"]*"/, `tvg-id="${cleanName}"`);
+            newMeta = newMeta.replace(/tvg-name="[^"]*"/, `tvg-name="${cleanName}"`);
+            newMeta = newMeta.replace(/,.*$/, `,${cleanName}`);
+
+            filteredM3u += newMeta + '\n' + channel.url + '\n';
         });
 
         return new Response(filteredM3u, {
