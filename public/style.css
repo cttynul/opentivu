@@ -166,11 +166,11 @@ body.lights-off h1 .channel-name {
 .modal-content {
     background-color: #212529;
     color: #f1f1f1;
-    margin: 15% auto;
+    margin: 5% auto;
     padding: 20px;
     border: 1px solid #888;
     width: 80%;
-    max-width: 600px;
+    max-width: 800px;
     position: relative;
     z-index: 1001;
     border-radius: 8px;
