@@ -39,7 +39,6 @@ const groupsMap = {
     'iq': ['Iraq'],
     'ie': ['Ireland'],
     'il': ['Israel'],
-    'it': ['Italy', 'VOD Italy'],
     'jp': ['Japan'],
     'kr': ['Korea'],
     'xk': ['Kosovo'],
@@ -86,6 +85,12 @@ const groupsMap = {
     'business': ['Business'],
     'weather': ['Weather'],
     'all': []
+};
+
+// Mappa per la ridenominazione specifica dei canali prima della pulizia generale
+const channelRenamingMap = {
+    "20 Mediaset Ⓖ": "Mediaset 20",
+    "27 Twentyseven Ⓖ": "Twenty Seven"
 };
 
 // Funzione principale della Netlify Function
@@ -270,13 +275,22 @@ ${plutoContent}
         
         let filteredM3u = header;
         filteredChannels.forEach(channel => {
-            // Funzione per rimuovere i caratteri speciali, gli indicatori e la stringa " - Pluto TV"
-            const cleanName = channel.name
+            let cleanName = channel.name;
+
+            // Applica la ridenominazione esatta prima della pulizia
+            if (channelRenamingMap[cleanName]) {
+                cleanName = channelRenamingMap[cleanName];
+            }
+            
+            // Pulizia dei caratteri speciali e indicatori
+            cleanName = cleanName
                 .replace(/ \u24d8|\u24bc|\u24c8|\u24df|\u24e2|\u24d5|\u24e6|\u24d1|\u24e5|\u24dc|\u24d0|\u24e7|\u24d9|\u24d7|\u24e8|\u24d4|\u24e4|\u24dd|\u24d6|\u24e1|\u24e3|\u24db|\u24da|\u24e0|\u24de|\u24e9/g, '')
-                .replace(/ – Pluto TV/g, '') // Rimuove " - Pluto TV"
+                .replace(/ – Pluto TV/g, '') 
                 .trim();
 
-            let newMeta = channel.meta.replace(/tvg-id="[^"]*"/, `tvg-id="${cleanName}"`);
+            let tvgId = cleanName.replace(/ /g, '').replace(/[\W_]+/g, '') + '.it';
+
+            let newMeta = channel.meta.replace(/tvg-id="[^"]*"/, `tvg-id="${tvgId}"`);
             newMeta = newMeta.replace(/tvg-name="[^"]*"/, `tvg-name="${cleanName}"`);
             newMeta = newMeta.replace(/,.*$/, `,${cleanName}`);
 
