@@ -39,6 +39,7 @@ const groupsMap = {
     'iq': ['Iraq'],
     'ie': ['Ireland'],
     'il': ['Israel'],
+    'it': ['Italy', 'VOD Italy'],
     'jp': ['Japan'],
     'kr': ['Korea'],
     'xk': ['Kosovo'],
@@ -100,21 +101,21 @@ exports.handler = async (event) => {
     const lastSegment = pathSegments[pathSegments.length - 1];
 
     let countryCode = null;
-    if (lastSegment && lastSegment !== 'm3u-generator') {
+    if (lastSegment) {
         countryCode = lastSegment.toLowerCase();
     }
-
-    // Se non viene specificato un codice paese, reindirizza alla pagina di aiuto
+    
+    // Gestione dei casi speciali all'inizio
     if (!countryCode) {
         return {
             statusCode: 302,
             headers: {
-                'Location': `${event.path}/help`,
+                'Location': `/help`,
             },
             body: ''
         };
     }
-    
+
     // Gestione della richiesta 'help'
     if (countryCode === 'help') {
         const helpText = `
