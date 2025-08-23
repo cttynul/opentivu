@@ -88,6 +88,12 @@ const groupsMap = {
     'all': []
 };
 
+// Mappa per la ridenominazione specifica dei canali prima della pulizia generale
+const channelRenamingMap = {
+    "20 Mediaset Ⓖ": "Mediaset 20",
+    "27 Twentyseven Ⓖ": "Twenty Seven"
+};
+
 // Funzione di gestione della richiesta
 export async function onRequest({ params }) {
     const { country_code } = params;
@@ -108,7 +114,7 @@ export async function onRequest({ params }) {
 opentivu m3u8 generator API
 --------------------------
 
-This API generates a filtered M3U8 playlist based on a country code or provides EPG data.
+This API generates a filtered M3u8 playlist based on a country code or provides EPG data.
 
 Usage:
 /api/[country_code]
@@ -133,7 +139,7 @@ Note: This API is for personal use and provides a list of publicly and free-to-a
             headers: { 'Content-Type': 'text/plain' },
         });
     }
-    
+
     if (countryCode === 'epg') {
         const italianEpgUrl = 'https://tvit.leicaflorianrobert.dev/epg/list.xml';
         const plutoEpgUrl = 'https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/it.xml';
@@ -160,7 +166,7 @@ Note: This API is for personal use and provides a list of publicly and free-to-a
 
             const italianContent = extractContent(italianEpgXml);
             const plutoContent = extractContent(plutoEpgXml);
-            
+
             const combinedEpg = `<?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE tv SYSTEM "xmltv.dtd">
 <tv>
@@ -202,7 +208,7 @@ ${plutoContent}
 
         for (let i = 0; i < lines.length; i++) {
             const line = lines[i];
-            
+
             if (line.startsWith('#EXTINF:')) {
                 const groupTitleMatch = line.match(/group-title="([^"]*)"/);
                 const groupTitle = groupTitleMatch ? groupTitleMatch[1] : '';
@@ -221,23 +227,23 @@ ${plutoContent}
                 }
             }
         }
-        
+
         let filteredChannels = [];
-        
+
         if (countryCode === 'all') {
             filteredChannels = channels;
 
             filteredChannels.sort((a, b) => {
                 const isAItalian = groupsMap['it'].includes(a.group);
                 const isBItalian = groupsMap['it'].includes(b.group);
-                
+
                 if (isAItalian && !isBItalian) {
                     return -1;
                 }
                 if (!isAItalian && isBItalian) {
                     return 1;
                 }
-                
+
                 return a.group.localeCompare(b.group);
             });
         } else {
@@ -247,19 +253,31 @@ ${plutoContent}
         const italianEpgUrl = 'https://tvit.leicaflorianrobert.dev/epg/list.xml';
         const plutoEpgUrl = 'https://raw.githubusercontent.com/matthuisman/i.mjh.nz/master/PlutoTV/it.xml';
 
-        const header = (countryCode === 'it') 
-            ? `#EXTM3U url-tvg="${italianEpgUrl},${plutoEpgUrl}"\n` 
+        const header = (countryCode === 'it')
+            ? `#EXTM3U url-tvg="${italianEpgUrl},${plutoEpgUrl}"\n`
             : '#EXTM3U\n';
-        
+
         let filteredM3u = header;
         filteredChannels.forEach(channel => {
-            // Funzione per rimuovere i caratteri speciali, gli indicatori e la stringa " - Pluto TV"
-            const cleanName = channel.name
-                .replace(/ \u24d8|\u24bc|\u24c8|\u24df|\u24e2|\u24d5|\u24e6|\u24d1|\u24e5|\u24dc|\u24d0|\u24e7|\u24d9|\u24d7|\u24e8|\u24d4|\u24e4|\u24dd|\u24d6|\u24e1|\u24e3|\u24db|\u24da|\u24e0|\u24de|\u24e9/g, '')
-                .replace(/ – Pluto TV/g, '') // Rimuove " - Pluto TV"
-                .trim();
+            let cleanName = channel.name;
+            let tvgId;
 
-            let newMeta = channel.meta.replace(/tvg-id="[^"]*"/, `tvg-id="${cleanName}"`);
+            // Applica la ridenominazione esatta prima della pulizia
+            if (channelRenamingMap[channel.name]) {
+                cleanName = channelRenamingMap[channel.name];
+            }
+
+            // Pulizia dei caratteri speciali e indicatori
+            cleanName = cleanName
+                .replace(/ \u24d8|\u24bc|\u24c8|\u24df|\u24e2|\u24d5|\u24e6|\u24d1|\u24e5|\u24dc|\u24d0|\u24e7|\u24d9|\u24d7|\u24e8|\u24d4|\u24e4|\u24dd|\u24d6|\u24e1|\u24e3|\u24db|\u24da|\u24e0|\u24de|\u24e9/g, '')
+                .replace(/ – Pluto TV/g, '')
+                .trim();
+            
+            // Logica per determinare il tvg-id
+            tvgId = cleanName.replace(/ /g, '').replace(/[\W_]+/g, '') + '.it';
+
+            // Aggiorna i metadati con il tvgId corretto e il nome pulito
+            let newMeta = channel.meta.replace(/tvg-id="[^"]*"/, `tvg-id="${tvgId}"`);
             newMeta = newMeta.replace(/tvg-name="[^"]*"/, `tvg-name="${cleanName}"`);
             newMeta = newMeta.replace(/,.*$/, `,${cleanName}`);
 
